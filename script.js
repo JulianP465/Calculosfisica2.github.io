@@ -142,4 +142,89 @@ function preguntarIA() {
 
     respuestaIA.innerText = respuestas[preguntas] || "";
 }
+function calcular() {
+    const operacion = document.getElementById("operaciones").value;
+    let resultado = 0;
+
+    const esNotacionCientifica = (valor) => {
+        return /[0-9]+(e[+-]?[0-9]+)?/.test(valor);
+    };
+
+    if (operacion === "campo electrico") {
+        const carga = document.getElementById("carga").value;
+        const distancia = document.getElementById("distancia").value;
+        
+        if (esNotacionCientifica(carga) && esNotacionCientifica(distancia)) {
+            const cargaNum = parseFloat(carga);
+            const distanciaNum = parseFloat(distancia);
+            if (distanciaNum !== 0) {
+                resultado = (8.99e9 * cargaNum) / (distanciaNum ** 2); // Fórmula del campo eléctrico
+            }
+        }
+    } else if (operacion === "potencial electrico") {
+        const carga = document.getElementById("carga").value;
+        const distancia = document.getElementById("distancia").value;
+        
+        if (esNotacionCientifica(carga) && esNotacionCientifica(distancia)) {
+            const cargaNum = parseFloat(carga);
+            const distanciaNum = parseFloat(distancia);
+            if (distanciaNum !== 0) {
+                resultado = (8.99e9 * cargaNum) / distanciaNum; // Fórmula del potencial eléctrico
+            }
+        }
+    } else if (operacion === "diferencia de potencial") {
+        const potencialA = document.getElementById("potencialA").value;
+        const potencialB = document.getElementById("potencialB").value;
+        
+        if (esNotacionCientifica(potencialA) && esNotacionCientifica(potencialB)) {
+            const potencialANum = parseFloat(potencialA);
+            const potencialBNum = parseFloat(potencialB);
+            resultado = potencialBNum - potencialANum; // Diferencia de potencial
+        }
+    } else if (operacion === "trabajo") {
+        const carga = document.getElementById("carga").value;
+        const potencialA = document.getElementById("potencialA").value;
+        const potencialB = document.getElementById("potencialB").value;
+        
+        if (esNotacionCientifica(carga) && esNotacionCientifica(potencialA) && esNotacionCientifica(potencialB)) {
+            const cargaNum = parseFloat(carga);
+            const potencialANum = parseFloat(potencialA);
+            const potencialBNum = parseFloat(potencialB);
+            resultado = cargaNum * (potencialBNum - potencialANum); // Trabajo realizado
+        }
+    } else if (operacion === "fuerza electrica") {
+        const carga1 = document.getElementById("carga1").value;
+        const carga2 = document.getElementById("carga2").value;
+        const distancia = document.getElementById("distancia").value;
+        
+        if (esNotacionCientifica(carga1) && esNotacionCientifica(carga2) && esNotacionCientifica(distancia)) {
+            const carga1Num = parseFloat(carga1);
+            const carga2Num = parseFloat(carga2);
+            const distanciaNum = parseFloat(distancia);
+            if (distanciaNum !== 0) {
+                resultado = (8.99e9 * carga1Num * carga2Num) / (distanciaNum ** 2); // Fuerza eléctrica (Ley de Coulomb)
+            }
+        }
+    } else if (operacion === "energia potencial") {
+        const carga1 = document.getElementById("carga1").value;
+        const carga2 = document.getElementById("carga2").value;
+        const distancia = document.getElementById("distancia").value;
+        
+        if (esNotacionCientifica(carga1) && esNotacionCientifica(carga2) && esNotacionCientifica(distancia)) {
+            const carga1Num = parseFloat(carga1);
+            const carga2Num = parseFloat(carga2);
+            const distanciaNum = parseFloat(distancia);
+            if (distanciaNum !== 0) {
+                resultado = (8.99e9 * carga1Num * carga2Num) / distanciaNum; // Energía potencial eléctrica
+            }
+        }
+    }
+
+    // Mostrar el resultado en notación científica
+    if (resultado !== 0) {
+        document.getElementById("resultado").innerHTML = `Resultado: ${resultado.toExponential(2)}`;
+    } else {
+        document.getElementById("resultado").innerHTML = "Por favor, ingresa valores válidos en notación científica (incluyendo 'e').";
+    }
+}
 
