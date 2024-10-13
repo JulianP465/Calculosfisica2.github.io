@@ -145,6 +145,7 @@ function preguntarIA() {
 function calcular() {
     const operacion = document.getElementById("operaciones").value;
     let resultado = 0;
+    let unidad = ""; // Variable para almacenar la unidad de medida
 
     const esNotacionCientifica = (valor) => {
         return /[0-9]+(e[+-]?[0-9]+)?/.test(valor);
@@ -159,6 +160,7 @@ function calcular() {
             const distanciaNum = parseFloat(distancia);
             if (distanciaNum !== 0) {
                 resultado = (8.99e9 * cargaNum) / (distanciaNum ** 2); // Fórmula del campo eléctrico
+                unidad = "N/C"; // Newtons por Coulomb
             }
         }
     } else if (operacion === "potencial electrico") {
@@ -170,6 +172,7 @@ function calcular() {
             const distanciaNum = parseFloat(distancia);
             if (distanciaNum !== 0) {
                 resultado = (8.99e9 * cargaNum) / distanciaNum; // Fórmula del potencial eléctrico
+                unidad = "V"; // Volts
             }
         }
     } else if (operacion === "diferencia de potencial") {
@@ -180,6 +183,7 @@ function calcular() {
             const potencialANum = parseFloat(potencialA);
             const potencialBNum = parseFloat(potencialB);
             resultado = potencialBNum - potencialANum; // Diferencia de potencial
+            unidad = "V"; // Volts
         }
     } else if (operacion === "trabajo") {
         const carga = document.getElementById("carga").value;
@@ -191,6 +195,7 @@ function calcular() {
             const potencialANum = parseFloat(potencialA);
             const potencialBNum = parseFloat(potencialB);
             resultado = cargaNum * (potencialBNum - potencialANum); // Trabajo realizado
+            unidad = "J"; // Joules
         }
     } else if (operacion === "fuerza electrica") {
         const carga1 = document.getElementById("carga1").value;
@@ -203,6 +208,7 @@ function calcular() {
             const distanciaNum = parseFloat(distancia);
             if (distanciaNum !== 0) {
                 resultado = (8.99e9 * carga1Num * carga2Num) / (distanciaNum ** 2); // Fuerza eléctrica (Ley de Coulomb)
+                unidad = "N"; // Newtons
             }
         }
     } else if (operacion === "energia potencial") {
@@ -216,15 +222,15 @@ function calcular() {
             const distanciaNum = parseFloat(distancia);
             if (distanciaNum !== 0) {
                 resultado = (8.99e9 * carga1Num * carga2Num) / distanciaNum; // Energía potencial eléctrica
+                unidad = "J"; // Joules
             }
         }
     }
 
-    // Mostrar el resultado en notación científica
+    // Mostrar el resultado en notación científica con unidades
     if (resultado !== 0) {
-        document.getElementById("resultado").innerHTML = `Resultado: ${resultado.toExponential(2)}`;
+        document.getElementById("resultado").innerHTML = `Resultado: ${resultado.toExponential(2)} ${unidad}`;
     } else {
         document.getElementById("resultado").innerHTML = "Por favor, ingresa valores válidos en notación científica (incluyendo 'e').";
     }
 }
-
