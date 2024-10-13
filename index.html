@@ -3,43 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Física</title>
+    <title>Cálculos de Física</title>
     <link rel="stylesheet" href="style.css">
-  
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-atom"></i> Calculadora de Física</h1>
-            <p>Calcula conceptos eléctricos de forma rápida y sencilla.</p>
-        </header>
-
-        <div class="select-container">
-            <label for="operacion"><i class="fas fa-calculator"></i> Selecciona la operación:</label>
-            <select id="operacion" onchange="mostrarInputs()">
-                <option value="" disabled selected>Elige una operación</option>
-                <option value="campo">Campo Eléctrico</option>
-                <option value="potencial">Potencial Eléctrico</option>
-                <option value="diferenciaPotencial">Diferencia de Potencial</option>
-                <option value="trabajo">Trabajo al mover una carga</option>
-                <option value="fuerza">Fuerza Eléctrica</option>
-                <option value="energia">Energía Potencial Eléctrica</option>
+    <header>
+        <h1>Cálculos de Física</h1>
+        <p id="instructivo">Para ingresar datos en notación científica, escribe el número seguido de "e" y el exponente. Por ejemplo: 1e3 para 1000.</p>
+    </header>
+    <main>
+        <section>
+            <h2>Selecciona una operación:</h2>
+            <select id="operaciones" onchange="solicitarDatos(this.value)">
+                <option value="">--Seleccionar operación--</option>
+                <option value="campo electrico">Campo Eléctrico</option>
+                <option value="potencial electrico">Potencial Eléctrico</option>
+                <option value="diferencia de potencial">Diferencia de Potencial</option>
+                <option value="trabajo">Trabajo</option>
+                <option value="fuerza electrica">Fuerza Eléctrica</option>
+                <option value="energia potencial">Energía Potencial Eléctrica</option>
             </select>
-        </div>
-
-        <div id="instructivo" class="instructivo"></div>
-
-        <div id="inputFields" class="input-fields"></div>
-
-        <button class="calculate-btn" onclick="calcular()"><i class="fas fa-play"></i> Calcular</button>
-
-        <div class="result-container">
+        </section>
+        <section id="datos"></section>
+        <section>
+            <button onclick="calcular()">Calcular</button>
             <p id="resultado"></p>
-        </div>
-    </div>
-
-    
-
+        </section>
+        <section>
+            <h2>Preguntas a la IA:</h2>
+            <label for="preguntas">Selecciona una pregunta:</label>
+            <select id="preguntas" onchange="preguntarIA()">
+                <option value="">--Seleccionar pregunta--</option>
+                <option value="campo electrico">¿Qué es el campo eléctrico?</option>
+                <option value="potencial electrico">¿Qué es el potencial eléctrico?</option>
+                <option value="diferencia de potencial">¿Qué es la diferencia de potencial?</option>
+                <option value="trabajo">¿Qué es el trabajo en física?</option>
+                <option value="energia potencial">¿Qué es la energía potencial eléctrica?</option>
+                <option value="fuerza electrica">¿Qué es la fuerza eléctrica?</option>
+                <option value="ley de coulomb">¿Qué es la Ley de Coulomb?</option>
+                <option value="ley de gauss">¿Qué es la Ley de Gauss?</option>
+                <option value="campo magnetico">¿Qué es el campo magnético?</option>
+                <option value="energia cinetica">¿Qué es la energía cinética?</option>
+                <option value="energia mecanica">¿Qué es la energía mecánica?</option>
+                <option value="conservacion de energia">¿Qué es el principio de conservación de la energía?</option>
+                <option value="fuerza gravitatoria">¿Qué es la fuerza gravitatoria?</option>
+                <option value="principio de superposicion">¿Qué es el principio de superposición?</option>
+                <option value="dipolo electrico">¿Qué es un dipolo eléctrico?</option>
+                <option value="potencial gravitatorio">¿Qué es el potencial gravitatorio?</option>
+                <option value="aceleracion">¿Qué es la aceleración?</option>
+                <option value="velocidad">¿Qué es la velocidad?</option>
+                <option value="aceleracion centripeta">¿Qué es la aceleración centrípeta?</option>
+                <option value="energia termica">¿Qué es la energía térmica?</option>
+                <option value="presion">¿Qué es la presión en física?</option>
+                <option value="conservacion cantidad movimiento">¿Qué es la ley de conservación de la cantidad de movimiento?</option>
+                <option value="principio de arquimedes">¿Qué es el principio de Arquímedes?</option>
+                <option value="momento de una fuerza">¿Qué es el momento de una fuerza?</option>
+                <option value="principio de inercia">¿Qué es el principio de inercia?</option>
+            </select>
+            <p id="respuestaIA"></p>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 Proyecto de Física 2</p>
+    </footer>
     <script src="script.js"></script>
 </body>
 </html>
