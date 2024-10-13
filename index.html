@@ -3,33 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cálculos de Física 2</title>
+    <title>Calculadora de Física</title>
     <link rel="stylesheet" href="style.css">
+  
 </head>
 <body>
-    <header>
-        <h1>Cálculos de Física 2</h1>
-    </header>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-atom"></i> Calculadora de Física</h1>
+            <p>Calcula conceptos eléctricos de forma rápida y sencilla.</p>
+        </header>
 
-    <section id="inputs">
-        <h2>Introduce los datos</h2>
-        <!-- Entrada de datos para los cálculos -->
-        <label for="carga">Carga (q) en Coulombs:</label>
-        <input type="number" id="carga" placeholder="Ej: 2e-6" step="any"><br>
+        <div class="select-container">
+            <label for="operacion"><i class="fas fa-calculator"></i> Selecciona la operación:</label>
+            <select id="operacion" onchange="mostrarInputs()">
+                <option value="" disabled selected>Elige una operación</option>
+                <option value="campo">Campo Eléctrico</option>
+                <option value="potencial">Potencial Eléctrico</option>
+                <option value="diferenciaPotencial">Diferencia de Potencial</option>
+                <option value="trabajo">Trabajo al mover una carga</option>
+                <option value="fuerza">Fuerza Eléctrica</option>
+                <option value="energia">Energía Potencial Eléctrica</option>
+            </select>
+        </div>
 
-        <label for="distancia">Distancia (r) en metros:</label>
-        <input type="number" id="distancia" placeholder="Ej: 0.5" step="any"><br>
+        <div id="instructivo" class="instructivo"></div>
 
-        <button onclick="calcular()">Calcular</button>
-    </section>
+        <div id="inputFields" class="input-fields"></div>
 
-    <section id="results">
-        <h2>Resultados</h2>
-        <p id="campoElectrico">Campo Eléctrico: </p>
-        <p id="potencialElectrico">Potencial Eléctrico: </p>
-        <p id="fuerzaElectrica">Fuerza Eléctrica: </p>
-        <p id="energiaPotencial">Energía Potencial Eléctrica: </p>
-    </section>
+        <button class="calculate-btn" onclick="calcular()"><i class="fas fa-play"></i> Calcular</button>
+
+        <div class="result-container">
+            <p id="resultado"></p>
+        </div>
+    </div>
+
+    
 
     <script src="script.js"></script>
 </body>
