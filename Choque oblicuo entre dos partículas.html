@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choque oblicuo entre dos partículas</title>
+<style>
+  :root{
+    --bg:#f2f4f6; --panel:#ffffff; --line:#cbd2d9; --ink:#1f2933; --muted:#52606d;
+    --a:#2f5d9e; --b:#b5473a; --accent:#1f3a5f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,Arial,sans-serif;line-height:1.45}
+  header{padding:20px 28px 8px}
+  h1{margin:0;font-size:1.4rem;font-weight:600}
+  header p{margin:4px 0 0;color:var(--muted);font-size:.95rem;max-width:70ch}
+  main{display:grid;grid-template-columns:290px 1fr;gap:20px;padding:16px 28px 32px;align-items:start}
+  @media(max-width:860px){main{grid-template-columns:1fr}}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:16px}
+  h2{margin:0 0 12px;font-size:1rem;font-weight:600}
+  label{display:block;font-size:.88rem;margin-bottom:10px}
+  label span{display:block;color:var(--muted);margin-bottom:3px}
+  input,select{width:100%;padding:7px 9px;font:inherit;border:1px solid var(--line);border-radius:3px;background:#fff;color:var(--ink)}
+  input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  button{width:100%;padding:9px;margin-top:6px;font:inherit;font-weight:600;color:#fff;background:var(--accent);border:0;border-radius:3px;cursor:pointer}
+  button:hover{background:#16304f}
+  #error{color:#a61b1b;font-size:.85rem;min-height:1.2em;margin:4px 0 0}
+  canvas{display:block;width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:3px}
+  .note{font-size:.82rem;color:var(--muted);margin:8px 0 0}
+  table{width:100%;border-collapse:collapse;font-size:.9rem;margin-top:12px}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+  th{font-weight:600;color:var(--muted)}
+  .dotA{color:var(--a);font-weight:600}.dotB{color:var(--b);font-weight:600}
+  #resultados{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>Choque oblicuo entre dos partículas</h1>
+  <p>La partícula A llega con velocidad ΔV y choca con la partícula B, que está en reposo. La línea de impacto forma un ángulo θ con la dirección de A. Las esferas son lisas.</p>
+</header>
+
+<main>
+  <section>
+    <h2>Datos de entrada</h2>
+    <label><span>Masa de A, m<sub>A</sub> (kg)</span><input id="mA" type="number" step="any" value="2"></label>
+    <label><span>Masa de B, m<sub>B</sub> (kg)</span><input id="mB" type="number" step="any" value="3"></label>
+    <label><span>Ángulo θ (grados, de 0 a 89)</span><input id="theta" type="number" step="any" value="30"></label>
+    <label><span>Velocidad de entrada ΔV (m/s)</span><input id="dV" type="number" step="any" value="10"></label>
+    <label><span>Coeficiente de restitución e (de 0 a 1)</span><input id="e" type="number" step="any" value="0.7"></label>
+    <label><span>Velocidad de reproducción</span>
+      <select id="vel"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select>
+    </label>
+    <button id="go">Simular choque</button>
+    <p id="error"></p>
+  </section>
+
+  <div>
+    <section>
+      <h2>Simulación</h2>
+      <canvas id="cv" width="760" height="440"></canvas>
+      <p class="note">El área de cada partícula es proporcional a su masa: si la masa se cuadruplica, el radio se duplica. Si las masas son muy grandes, se reduce la escala de ambas por igual. Las velocidades se dibujan a escala visual; los valores reales están en la tabla de resultados.</p>
+    </section>
+
+    <section id="resultados" style="margin-top:20px">
+      <h2>Resultados</h2>
+      <table>
+        <thead><tr><th>Partícula</th><th>Velocidad final (m/s)</th><th>Magnitud (m/s)</th><th>Dirección</th></tr></thead>
+        <tbody>
+          <tr><td class="dotA">A</td><td id="rAv"></td><td id="rAm"></td><td id="rAd"></td></tr>
+          <tr><td class="dotB">B</td><td id="rBv"></td><td id="rBm"></td><td id="rBd"></td></tr>
+        </tbody>
+      </table>
+      <table>
+        <tbody>
+          <tr><th>Energía cinética antes</th><td id="eAntes"></td></tr>
+          <tr><th>Energía cinética después</th><td id="eDesp"></td></tr>
+          <tr><th>Energía perdida</th><td id="ePerd"></td></tr>
+          <tr><th>Momento antes</th><td id="pAntes"></td></tr>
+          <tr><th>Momento después</th><td id="pDesp"></td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</main>
+
+<script>
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const W = cv.width, H = cv.height;
+const $ = id => document.getElementById(id);
+const COLA = '#2f5d9e', COLB = '#b5473a';
+let sim = null, raf = null;
+
+// Cálculo físico: normal con restitución, tangencial se conserva
+function calcular(mA, mB, theta, dV, e){
+  const th = theta*Math.PI/180, c = Math.cos(th), s = Math.sin(th);
+  const vAn = dV*c, vAt = -dV*s;
+  const vAnf = (mA - mB*e)/(mA + mB)*vAn;
+  const vBnf = mA*(1 + e)/(mA + mB)*vAn;
+  return {
+    A:{x: vAnf*c - vAt*s, y: vAnf*s + vAt*c},
+    B:{x: vBnf*c, y: vBnf*s}
+  };
+}
+
+function leerDatos(){
+  const d = {mA:+$('mA').value, mB:+$('mB').value, theta:+$('theta').value, dV:+$('dV').value, e:+$('e').value};
+  let msg = '';
+  if (!(d.mA > 0) || !(d.mB > 0)) msg = 'Las masas deben ser mayores que 0.';
+  else if (!(d.theta >= 0 && d.theta <= 89)) msg = 'El ángulo debe estar entre 0 y 89 grados.';
+  else if (!(d.dV > 0)) msg = 'La velocidad de entrada debe ser mayor que 0.';
+  else if (!(d.e >= 0 && d.e <= 1)) msg = 'El coeficiente de restitución debe estar entre 0 y 1.';
+  $('error').textContent = msg;
+  return msg ? null : d;
+}
+
+// El área de cada partícula es proporcional a su masa (radio ∝ √m).
+// Si alguna queda demasiado grande, se reducen ambas con el mismo factor
+// para que la proporción entre ellas se mantenga.
+function radios(mA, mB){
+  let f = 14;                                   // píxeles por √kg
+  const mayor = f*Math.sqrt(Math.max(mA, mB));
+  if (mayor > 70) f *= 70/mayor;
+  return [Math.max(4, f*Math.sqrt(mA)), Math.max(4, f*Math.sqrt(mB))];
+}
+
+function preparar(d){
+  const th = d.theta*Math.PI/180, c = Math.cos(th), s = Math.sin(th);
+  const [rA, rB] = radios(d.mA, d.mB), D = rA + rB;
+  const Bx = 500, By = H/2;
+  const cx = Bx - D*c, cy = By - D*s;          // posición de A en el contacto
+  const k = 170/d.dV;                           // escala visual (px por m/s)
+  const fin = calcular(d.mA, d.mB, d.theta, d.dV, d.e);
+  sim = {
+    d, k, fin, c, s, cx, cy, collided:false, post:0,
+    A:{x:cx-240, y:cy, vx:d.dV*k, vy:0, r:rA, m:d.mA, col:COLA, n:'A', tr:[]},
+    B:{x:Bx, y:By, vx:0, vy:0, r:rB, m:d.mB, col:COLB, n:'B', tr:[]}
+  };
+}
+
+function paso(dt){
+  const {A,B} = sim;
+  if (!sim.collided){
+    A.x += A.vx*dt;
+    if (A.x >= sim.cx){
+      A.x = sim.cx; A.y = sim.cy; sim.collided = true;
+      A.vx = sim.fin.A.x*sim.k; A.vy = sim.fin.A.y*sim.k;
+      B.vx = sim.fin.B.x*sim.k; B.vy = sim.fin.B.y*sim.k;
+      mostrarResultados();
+    }
+  } else {
+    A.x += A.vx*dt; A.y += A.vy*dt;
+    B.x += B.vx*dt; B.y += B.vy*dt;
+    sim.post += dt;
+  }
+  [A,B].forEach(p => { p.tr.push([p.x,p.y]); if (p.tr.length > 400) p.tr.shift(); });
+}
+
+function flecha(x, y, vx, vy, col){
+  const L = Math.hypot(vx, vy)*0.45;
+  if (L < 4) return;
+  const ux = vx/Math.hypot(vx,vy), uy = vy/Math.hypot(vx,vy);
+  const x2 = x + ux*(L), y2 = y + uy*(L);
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x2,y2); ctx.stroke();
+  const a = Math.atan2(uy,ux);
+  ctx.beginPath(); ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-9*Math.cos(a-0.4), y2-9*Math.sin(a-0.4));
+  ctx.lineTo(x2-9*Math.cos(a+0.4), y2-9*Math.sin(a+0.4)); ctx.fill();
+}
+
+// Coordenadas de la simulación: y hacia arriba. Se voltea al dibujar.
+const Y = y => H - y;
+
+function dibujar(){
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle = '#e4e8ec'; ctx.lineWidth = 1;
+  for (let x=0; x<=W; x+=40){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y=0; y<=H; y+=40){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  const {A,B} = sim;
+
+  [A,B].forEach(p => {
+    ctx.strokeStyle = p.col; ctx.globalAlpha = .35; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    p.tr.forEach((q,i) => i ? ctx.lineTo(q[0],Y(q[1])) : ctx.moveTo(q[0],Y(q[1])));
+    ctx.stroke(); ctx.globalAlpha = 1;
+  });
+
+  if (sim.collided){
+    ctx.setLineDash([6,5]); ctx.strokeStyle = '#7b8794'; ctx.lineWidth = 1;
+    const bx = B.x0 ?? 500, by = H/2;
+    ctx.beginPath();
+    ctx.moveTo(sim.cx - sim.c*120, Y(sim.cy - sim.s*120));
+    ctx.lineTo(500 + sim.c*160, Y(by + sim.s*160)); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#52606d'; ctx.font = '12px "Segoe UI", Arial';
+    ctx.fillText('línea de impacto', 14, 22);
+  }
+
+  [A,B].forEach(p => {
+    ctx.fillStyle = p.col; ctx.beginPath(); ctx.arc(p.x, Y(p.y), p.r, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 15px "Segoe UI", Arial';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(p.n, p.x, Y(p.y));
+    ctx.fillStyle = '#1f2933'; ctx.font = '12px "Segoe UI", Arial';
+    ctx.fillText(p.m + ' kg', p.x, Y(p.y) + p.r + 14);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    flecha(p.x, Y(p.y), p.vx, -p.vy, p.col);
+  });
+}
+
+function mostrarResultados(){
+  const {d, fin} = sim, f = n => n.toFixed(3);
+  const mag = v => Math.hypot(v.x, v.y);
+  const dir = v => mag(v) < 1e-9 ? '—' : (Math.atan2(v.y, v.x)*180/Math.PI).toFixed(1) + '°';
+  $('rAv').textContent = `(${f(fin.A.x)}, ${f(fin.A.y)})`;
+  $('rBv').textContent = `(${f(fin.B.x)}, ${f(fin.B.y)})`;
+  $('rAm').textContent = f(mag(fin.A)); $('rBm').textContent = f(mag(fin.B));
+  $('rAd').textContent = dir(fin.A); $('rBd').textContent = dir(fin.B);
+  const e0 = 0.5*d.mA*d.dV**2, e1 = 0.5*d.mA*mag(fin.A)**2 + 0.5*d.mB*mag(fin.B)**2;
+  $('eAntes').textContent = f(e0) + ' J';
+  $('eDesp').textContent = f(e1) + ' J';
+  $('ePerd').textContent = f(e0 - e1) + ' J';
+  $('pAntes').textContent = `(${f(d.mA*d.dV)}, ${f(0)}) kg·m/s`;
+  $('pDesp').textContent = `(${f(d.mA*fin.A.x + d.mB*fin.B.x)}, ${f(d.mA*fin.A.y + d.mB*fin.B.y)}) kg·m/s`;
+  $('resultados').style.display = 'block';
+}
+
+function simular(){
+  const d = leerDatos(); if (!d) return;
+  cancelAnimationFrame(raf);
+  $('resultados').style.display = 'none';
+  preparar(d);
+  const vel = +$('vel').value;
+  let last = null;
+  function frame(ts){
+    if (last === null) last = ts;
+    const dt = Math.min((ts - last)/1000, 0.05)*vel; last = ts;
+    paso(dt); dibujar();
+    const fuera = p => p.x < -80 || p.x > W+80 || p.y < -80 || p.y > H+80;
+    if (sim.collided && (sim.post > 7 || (fuera(sim.A) && fuera(sim.B)))) return;
+    raf = requestAnimationFrame(frame);
+  }
+  raf = requestAnimationFrame(frame);
+}
+
+$('go').addEventListener('click', simular);
+const d0 = leerDatos(); if (d0){ preparar(d0); dibujar(); }
+</script>
+</body>
+</html>
